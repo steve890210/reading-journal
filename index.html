@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2D5A4E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="讀書筆記">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>我的讀書筆記</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;800&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<style>
+/* Layout: single column journal, max 680px; sticky top bar, bottom tab bar on phone, floating add button */
+:root{
+  --paper:#F2F4F1; --sheet:#FFFFFF; --ink:#1E332E; --ink-2:#55665F; --line:#D9DFDA;
+  --pine:#2D5A4E; --pine-soft:#E2ECE7; --marker:#F2C14E; --marker-soft:#FBEFC9; --danger:#B2402F; --h0:#E3E8E4; --h1:#B9D5C9; --h2:#7FB09C; --h3:#3F826B; --h4:#1F5543;
+  --display:"Noto Serif TC","Songti TC",serif;
+  --body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#141A18; --sheet:#1C2421; --ink:#E6EDE9; --ink-2:#9DAEA6; --line:#2F3A36;
+  --pine:#7FC1AC; --pine-soft:#22332D; --marker:#E9B949; --marker-soft:#3A3220; --danger:#E07A66; --h0:#252F2B; --h1:#2D5446; --h2:#3D7C66; --h3:#5FAA8E; --h4:#9AD8BF; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#141A18; --sheet:#1C2421; --ink:#E6EDE9; --ink-2:#9DAEA6; --line:#2F3A36;
+  --pine:#7FC1AC; --pine-soft:#22332D; --marker:#E9B949; --marker-soft:#3A3220; --danger:#E07A66; --h0:#252F2B; --h1:#2D5446; --h2:#3D7C66; --h3:#5FAA8E; --h4:#9AD8BF; color-scheme:dark}
+*{box-sizing:border-box}
+html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.65}
+.wrap{max-width:680px;margin:0 auto;padding-inline:16px;padding-block:0 120px}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--paper);padding-block:14px 10px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 12px;border-bottom:1px solid var(--line)}
+h1{font-family:var(--display);font-weight:800;font-size:22px;margin:0;letter-spacing:.02em}
+h1 small{display:block;font-family:var(--body);font-weight:400;font-size:12px;color:var(--ink-2);letter-spacing:.04em}
+.tabs{display:flex;flex:none;gap:2px;background:var(--pine-soft);border-radius:999px;padding:3px}
+.tabs button{border:0;background:transparent;color:var(--ink-2);font:500 14px var(--body);padding:6px 12px;border-radius:999px;cursor:pointer;white-space:nowrap}
+.tabs button[aria-pressed="true"]{background:var(--sheet);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+button,input,select,textarea{font-family:inherit}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,.card:focus-visible{outline:2px solid var(--pine);outline-offset:2px}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-block:16px}
+@media (max-width:520px){.stats{grid-template-columns:1fr 1fr}}
+.stat b small{font-size:14px;color:var(--ink-2);font-weight:400}
+.muted{color:var(--ink-2);font-size:13px;margin:0}
+.heat-scroll{overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+.heat{display:grid;grid-template-columns:18px auto;grid-template-rows:16px auto;gap:2px 4px;width:max-content}
+.hm{grid-column:2;display:grid;grid-template-columns:repeat(var(--cols),12px);column-gap:3px;font-size:10px;color:var(--ink-2);white-space:nowrap}
+.hm span{overflow:visible}
+.hd{grid-column:1;grid-row:2;display:grid;grid-template-rows:repeat(7,12px);row-gap:3px;font-size:10px;color:var(--ink-2);line-height:12px}
+.hg{grid-column:2;grid-row:2;display:grid;grid-template-rows:repeat(7,12px);grid-template-columns:repeat(var(--cols),12px);gap:3px}
+.hc{width:12px;height:12px;border-radius:2px;cursor:pointer}
+.legend{display:flex;align-items:center;gap:3px;justify-content:flex-end;font-size:11px;color:var(--ink-2);margin-top:6px}
+.legend i{width:12px;height:12px;border-radius:2px}
+.legend span{margin-inline:4px}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.dgrid>*{min-width:0}
+@media (max-width:600px){.dgrid{grid-template-columns:1fr}}
+.chart{width:100%;height:auto;display:block}
+.chart text{font-size:10px;fill:var(--ink-2);font-family:var(--body)}
+.chart text.val{fill:var(--ink);font-weight:700}
+.chart rect{cursor:pointer}
+.topics{display:flex;flex-direction:column;gap:6px}
+.tp{display:grid;grid-template-columns:5.5em 1fr 2em;align-items:center;gap:8px;border:0;background:none;padding:2px 0;color:var(--ink);font-size:13px;cursor:pointer;text-align:left}
+.tt{height:10px;background:var(--pine-soft);border-radius:0 4px 4px 0}
+.tt i{display:block;height:100%;background:var(--pine);border-radius:0 4px 4px 0}
+.tv{text-align:right;font-variant-numeric:tabular-nums;color:var(--ink-2)}
+.feed-row{display:flex;align-items:center;gap:10px;width:100%;border:0;border-top:1px solid var(--line);background:none;color:var(--ink);padding:9px 0;text-align:left;font-size:14px;cursor:pointer;justify-content:space-between}
+.feed-row:first-of-type{border-top:0}
+.feed-row small{color:var(--ink-2);font-size:12px;font-variant-numeric:tabular-nums;display:block}
+.fi{width:22px;height:22px;flex:none;border-radius:50%;display:grid;place-items:center;font-size:11px;background:var(--pine-soft);color:var(--pine)}
+.fi.t3{background:var(--pine);color:var(--paper)} .fi.t2{background:var(--marker-soft);color:var(--ink)}
+.tip{position:fixed;z-index:20;max-width:260px;background:var(--ink);color:var(--paper);font-size:12px;line-height:1.5;padding:6px 10px;border-radius:6px;white-space:pre-line;pointer-events:none}
+.stat{background:var(--sheet);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0}
+.stat b{display:block;font-family:var(--display);font-size:24px;line-height:1.2;font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--ink-2)}
+.meter{height:5px;background:var(--line);border-radius:3px;margin-top:6px;overflow:hidden}
+.meter i{display:block;height:100%;background:var(--pine)}
+
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.filters input,.filters select{flex:1 1 140px;min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--sheet);color:var(--ink);font-size:14px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--sheet);color:var(--ink-2);border-radius:999px;padding:4px 12px;font-size:13px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+
+.list{display:flex;flex-direction:column;gap:10px}
+.card{background:var(--sheet);border:1px solid var(--line);border-radius:12px;padding:14px 16px;cursor:pointer;display:grid;grid-template-columns:1fr auto;gap:4px 12px;text-align:left;width:100%;color:inherit}
+.card h3{font-family:var(--display);font-size:17px;margin:0;line-height:1.4;text-wrap:balance}
+.card .meta{grid-column:1/-1;font-size:13px;color:var(--ink-2);display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center}
+.card .gist{grid-column:1/-1;font-size:14px;margin:4px 0 0;color:var(--ink);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tag{font-size:12px;padding:1px 8px;border-radius:4px;background:var(--pine-soft);color:var(--pine)}
+.status{font-size:12px;padding:1px 8px;border-radius:999px;border:1px solid currentColor}
+.status.reading{color:var(--pine)} .status.done{color:var(--ink-2)}
+.stars{color:var(--marker);letter-spacing:1px;white-space:nowrap}
+.stars .off{color:var(--line)}
+.prog{font-size:12px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.example{font-size:11px;color:var(--danger);border:1px dashed var(--danger);border-radius:4px;padding:0 6px}
+
+.empty{text-align:center;padding:40px 16px;color:var(--ink-2);background:var(--sheet);border:1px dashed var(--line);border-radius:12px}
+.empty h3{font-family:var(--display);color:var(--ink);margin:0 0 6px}
+
+.fab{position:fixed;right:max(16px,calc(50% - 324px));bottom:calc(20px + env(safe-area-inset-bottom,0px));border:0;background:var(--pine);color:var(--paper);font:700 15px var(--body);padding:13px 20px;border-radius:999px;box-shadow:0 4px 14px rgba(0,0,0,.18);cursor:pointer;z-index:6}
+
+/* detail */
+.back{border:0;background:none;color:var(--pine);font-size:14px;padding:12px 0;cursor:pointer}
+.d-head h2{font-family:var(--display);font-size:24px;margin:4px 0;line-height:1.35;text-wrap:balance}
+.d-head .meta{color:var(--ink-2);font-size:13px;display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center}
+section.block{background:var(--sheet);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-top:12px}
+section.block h4{margin:0 0 8px;font-size:12px;letter-spacing:.12em;color:var(--ink-2);font-weight:700}
+section.block p{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+blockquote{margin:0 0 10px;padding:6px 12px;font-family:var(--display);font-weight:600;background:linear-gradient(transparent 55%,var(--marker-soft) 55%);white-space:pre-wrap}
+blockquote:last-child{margin-bottom:0}
+.act{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px solid var(--line)}
+.act:first-of-type{border-top:0}
+.act input{width:20px;height:20px;margin-top:2px;accent-color:var(--pine);flex:none}
+.act label{flex:1;min-width:0;cursor:pointer}
+.act.done label{color:var(--ink-2);text-decoration:line-through}
+.act .src{display:block;font-size:12px;color:var(--ink-2);text-decoration:none}
+.row-btns{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--sheet);color:var(--ink);padding:9px 16px;border-radius:8px;font-size:14px;cursor:pointer}
+.btn.primary{background:var(--pine);border-color:var(--pine);color:var(--paper);font-weight:700}
+.btn.danger{color:var(--danger);border-color:var(--danger)}
+.btn.danger.armed{background:var(--danger);color:var(--paper)}
+
+/* form */
+form .field{display:flex;flex-direction:column;gap:4px;margin-top:14px}
+form label.lb{font-size:13px;font-weight:700}
+form .hint{font-size:12px;color:var(--ink-2);font-weight:400}
+form input[type=text],form input[type=date],form select,form textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--sheet);color:var(--ink);font-size:16px}
+form textarea{min-height:96px;resize:vertical;line-height:1.6}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:420px){.grid2{grid-template-columns:1fr}}
+.rate{display:flex;gap:4px}
+.rate button{border:0;background:none;font-size:28px;line-height:1;color:var(--line);cursor:pointer;padding:2px}
+.rate button.on{color:var(--marker)}
+.multi{display:flex;flex-direction:column;gap:8px}
+.multi .item{display:flex;gap:6px}
+.multi .item textarea,.multi .item input{flex:1;min-width:0}
+.multi .item textarea{min-height:56px}
+.x{border:1px solid var(--line);background:var(--sheet);color:var(--ink-2);border-radius:8px;width:40px;flex:none;cursor:pointer;font-size:18px}
+.add{align-self:flex-start;border:1px dashed var(--pine);background:none;color:var(--pine);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:14px}
+.err{color:var(--danger);font-size:13px;margin-top:8px}
+.notice{background:var(--marker-soft);border-radius:10px;padding:12px 14px;margin-top:16px;font-size:14px}
+.group-h{font-size:12px;letter-spacing:.12em;color:var(--ink-2);font-weight:700;margin:18px 0 6px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <h1>我的讀書筆記<small id="sync">讀過什麼・為什麼讀・如何變得更好</small></h1>
+    <nav class="tabs" aria-label="切換頁面">
+      <button id="tab-dash" data-tab="dash" aria-pressed="true">總覽</button>
+      <button id="tab-books" data-tab="books" aria-pressed="false">書架</button>
+      <button id="tab-actions" data-tab="actions" aria-pressed="false">行動</button>
+      <button id="tab-set" data-tab="settings" aria-pressed="false" aria-label="設定">⚙</button>
+    </nav>
+  </header>
+  <main id="app">
+    <div class="empty" style="margin-top:20px"><h3>正在打開你的書架…</h3>正在從 Google Sheets 讀取你的紀錄。</div>
+  </main>
+</div>
+<button class="fab" id="fab" type="button">＋ 記錄一本書</button>
+
+<script>
+const CATS=["人際關係","溝通表達","心態情緒","思考方法","習慣自律","工作效率","親子家庭","理財人生","其他"];
+const S={db:null,books:[],loaded:false,tab:"dash",view:"list",id:null,q:"",st:"all",cat:"",err:"",offline:false};
+const app=document.getElementById("app");
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const uid=()=>Math.random().toString(36).slice(2,10);
+const stars=n=>{n=n|0;return `<span class="stars" aria-label="${n} 顆星">${"★".repeat(n)}<span class="off">${"★".repeat(5-n)}</span></span>`};
+const statusLbl={reading:"閱讀中",done:"已讀完",want:"想讀"};
+const book=id=>S.books.find(b=>b.id===id);
+
+function go(view,id){S.view=view;S.id=id||null;S.err="";render();window.scrollTo(0,0)}
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{S.tab=b.dataset.tab;go("list")});
+document.getElementById("fab").onclick=()=>go("edit");
+
+function render(){
+  document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.tab===S.tab&&S.view==="list")));
+  document.getElementById("fab").hidden=S.view==="edit"||S.tab==="settings"||!API.ready();
+  if(S.tab==="settings"||!API.ready())return renderSettings();
+  if(!S.loaded)return;
+  if(S.view==="detail")return renderDetail();
+  if(S.view==="edit")return renderEdit();
+  S.tab==="actions"?renderActions():S.tab==="dash"?renderDash():renderList();
+}
+
+const ymd=ms=>{const d=new Date(ms);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+function events(){
+  const ev=[];
+  S.books.forEach(b=>{
+    if(b.startDate)ev.push({date:b.startDate,t:1,text:`開始讀《${b.title}》`,id:b.id});
+    if(b.finishDate&&b.status==="done")ev.push({date:b.finishDate,t:3,text:`讀完《${b.title}》`,id:b.id});
+    if(b.createdAt&&ymd(b.createdAt)!==b.startDate)ev.push({date:ymd(b.createdAt),t:0,text:`寫下《${b.title}》筆記`,id:b.id});
+    (b.actions||[]).forEach(a=>{if(a.done&&a.doneAt)ev.push({date:ymd(a.doneAt),t:2,text:`做到：${a.text}`,id:b.id})});
+  });
+  return ev;
+}
+const MON=["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"];
+function heatHtml(ev){
+  const by={};ev.forEach(e=>(by[e.date]=by[e.date]||[]).push(e.text));
+  const today=new Date();today.setHours(0,0,0,0);
+  const start=new Date(today);start.setDate(start.getDate()-today.getDay()-52*7);
+  let cells="",months="",lastM=-1,col=0;
+  for(let d=new Date(start);d<=today;d.setDate(d.getDate()+1)){
+    if(d.getDay()===0){col++;if(d.getMonth()!==lastM){lastM=d.getMonth();months+=`<span style="grid-column:${col}">${MON[lastM]}</span>`}}
+    const k=ymd(d),list=by[k]||[],lv=Math.min(4,list.length);
+    const tip=`${k}・${list.length?list.length+" 項活動\n"+list.join("\n"):"沒有紀錄"}`;
+    cells+=`<i class="hc" style="grid-row:${d.getDay()+1};grid-column:${col};background:var(--h${lv})" data-tip="${esc(tip)}" tabindex="-1"></i>`;
+  }
+  return `<div class="heat-scroll" id="heatScroll"><div class="heat" style="--cols:${col}">
+    <div class="hm">${months}</div>
+    <div class="hd"><span style="grid-row:2">一</span><span style="grid-row:4">三</span><span style="grid-row:6">五</span></div>
+    <div class="hg">${cells}</div></div></div>
+    <div class="legend"><span>少</span>${[0,1,2,3,4].map(n=>`<i style="background:var(--h${n})"></i>`).join("")}<span>多</span></div>`;
+}
+function monthChart(y){
+  const c=Array(12).fill(0);
+  S.books.forEach(b=>{if(b.status==="done"&&(b.finishDate||"").startsWith(y))c[+b.finishDate.slice(5,7)-1]++});
+  const max=Math.max(2,...c),W=340,H=150,L=22,B=22,T=14,bw=(W-L)/12;
+  const yy=v=>T+(H-T-B)*(1-v/max);
+  const ticks=[0,Math.ceil(max/2),max].filter((v,i,a)=>a.indexOf(v)===i);
+  let g=ticks.map(v=>`<line x1="${L}" x2="${W}" y1="${yy(v)}" y2="${yy(v)}" stroke="var(--line)" stroke-width="1"/><text x="${L-6}" y="${yy(v)+4}" text-anchor="end">${v}</text>`).join("");
+  c.forEach((v,i)=>{
+    const x=L+i*bw+bw*0.2,w=bw*0.6;
+    g+=`<text x="${x+w/2}" y="${H-6}" text-anchor="middle">${i+1}</text>`;
+    g+=`<rect x="${L+i*bw}" y="${T}" width="${bw}" height="${H-T-B}" fill="transparent" data-tip="${y} 年 ${i+1} 月・讀完 ${v} 本"/>`;
+    if(v){const top=yy(v),h=yy(0)-top,r=Math.min(4,h,w/2);
+      g+=`<path d="M${x},${yy(0)}V${top+r}Q${x},${top} ${x+r},${top}H${x+w-r}Q${x+w},${top} ${x+w},${top+r}V${yy(0)}Z" fill="var(--pine)" pointer-events="none"/><text x="${x+w/2}" y="${top-4}" text-anchor="middle" class="val">${v}</text>`}
+  });
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${y} 年每月讀完本數：${c.map((v,i)=>`${i+1}月${v}本`).join("、")}">${g}</svg>`;
+}
+function topicHtml(){
+  const cnt={};S.books.forEach(b=>{const k=b.category||"未分類";cnt[k]=(cnt[k]||0)+1});
+  const rows=Object.entries(cnt).sort((a,b)=>b[1]-a[1]);const max=rows[0]?.[1]||1;
+  return rows.length?`<div class="topics">${rows.map(([k,v])=>`<button type="button" class="tp" data-cat="${esc(k)}"><span class="tl">${esc(k)}</span><span class="tt"><i style="width:${v/max*100}%"></i></span><span class="tv">${v}</span></button>`).join("")}</div>`:'<p class="muted">還沒有分類資料。</p>';
+}
+function renderDash(){
+  const y=new Date().getFullYear()+"",ev=events();
+  const doneYear=S.books.filter(b=>b.status==="done"&&(b.finishDate||"").startsWith(y)).length;
+  const reading=S.books.filter(b=>b.status==="reading");
+  const acts=S.books.flatMap(b=>b.actions||[]),ad=acts.filter(a=>a.done).length,pct=acts.length?Math.round(ad/acts.length*100):0;
+  const activeDays=new Set(ev.filter(e=>e.date.startsWith(y)).map(e=>e.date)).size;
+  const recent=ev.slice().sort((a,b)=>b.date.localeCompare(a.date)||b.t-a.t).slice(0,8);
+  const icon={0:"✎",1:"▸",2:"✓",3:"■"};
+  app.innerHTML=`
+  <div class="stats">
+    <div class="stat"><b>${doneYear}</b><span>${y} 年讀完</span></div>
+    <div class="stat"><b>${reading.length}</b><span>閱讀中</span></div>
+    <div class="stat"><b>${ad}<small> / ${acts.length}</small></b><span>行動已做到</span><div class="meter"><i style="width:${pct}%"></i></div></div>
+    <div class="stat"><b>${activeDays}</b><span>今年活躍天數</span></div>
+  </div>
+  <section class="block"><h4>閱讀活動・過去一年</h4>${heatHtml(ev)}<p class="muted" style="margin-top:6px">開始讀、讀完、寫筆記、做到一項行動，都算一次活動。點格子看細節。</p></section>
+  <div class="dgrid">
+    <section class="block"><h4>${y} 年每月讀完</h4>${monthChart(y)}</section>
+    <section class="block"><h4>主題分布</h4>${topicHtml()}</section>
+  </div>
+  ${reading.length?`<section class="block"><h4>正在讀</h4>${reading.map(b=>{const a=b.actions||[],d=a.filter(x=>x.done).length;return `<button class="feed-row" data-id="${esc(b.id)}"><span><b>${esc(b.title)}</b>${b.startDate?`<small>從 ${esc(b.startDate)} 開始</small>`:""}</span>${a.length?`<span class="prog">行動 ${d}/${a.length}</span>`:""}</button>`}).join("")}</section>`:""}
+  <section class="block"><h4>最近動態</h4>${recent.length?recent.map(e=>`<button class="feed-row" data-id="${esc(e.id)}"><span class="fi t${e.t}" aria-hidden="true">${icon[e.t]}</span><span style="flex:1;min-width:0">${esc(e.text)}</span><small>${esc(e.date.slice(5).replace("-","/"))}</small></button>`).join(""):'<p class="muted">記錄第一本書後，動態會出現在這裡。</p>'}</section>`;
+  const hs=document.getElementById("heatScroll");hs.scrollLeft=hs.scrollWidth;
+  app.querySelectorAll(".feed-row").forEach(r=>r.onclick=()=>go("detail",r.dataset.id));
+  app.querySelectorAll(".tp").forEach(r=>r.onclick=()=>{S.tab="books";S.cat=r.dataset.cat==="未分類"?"":r.dataset.cat;go("list")});
+}
+const tipEl=document.createElement("div");tipEl.className="tip";tipEl.hidden=true;document.body.appendChild(tipEl);
+function showTip(t){const s=t.dataset.tip;if(!s)return;tipEl.textContent=s;tipEl.hidden=false;const r=t.getBoundingClientRect();
+  const w=tipEl.offsetWidth,h=tipEl.offsetHeight;let x=r.left+r.width/2-w/2;x=Math.max(8,Math.min(innerWidth-w-8,x));let yy=r.top-h-8;if(yy<8)yy=r.bottom+8;
+  tipEl.style.left=x+"px";tipEl.style.top=yy+"px"}
+document.addEventListener("pointerover",e=>{const t=e.target.closest?.("[data-tip]");if(t&&e.pointerType==="mouse")showTip(t);else if(!t&&e.pointerType==="mouse")tipEl.hidden=true});
+document.addEventListener("click",e=>{const t=e.target.closest?.("[data-tip]");if(t)showTip(t);else tipEl.hidden=true});
+addEventListener("scroll",()=>tipEl.hidden=true,{passive:true,capture:true});
+
+function renderList(){
+  const q=S.q.trim().toLowerCase();
+  let list=S.books.filter(b=>(S.st==="all"||b.status===S.st)&&(!S.cat||b.category===S.cat)&&(!q||[b.title,b.author,b.takeaways,b.why].join(" ").toLowerCase().includes(q)));
+  list.sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
+  const chip=(v,l)=>`<button class="chip" data-st="${v}" aria-pressed="${S.st===v}">${l}</button>`;
+  app.innerHTML=`
+   <div class="filters" style="margin-top:16px">
+     <input id="q" type="search" placeholder="搜尋書名、作者、心得" value="${esc(S.q)}" aria-label="搜尋">
+     <select id="cat" aria-label="主題分類"><option value="">全部主題</option>${CATS.map(c=>`<option ${S.cat===c?"selected":""}>${c}</option>`).join("")}</select>
+     <div class="chips">${chip("all","全部")}${chip("reading","閱讀中")}${chip("done","已讀完")}${chip("want","想讀")}</div>
+   </div>
+   <div class="list">${list.length?list.map(cardHtml).join(""):(S.books.length?`<div class="empty">沒有符合條件的書。</div>`:`<div class="empty"><h3>書架還是空的</h3>按右下角「記錄一本書」，寫下為什麼讀、讀到什麼、打算怎麼做。</div>`)}</div>`;
+  const qi=document.getElementById("q");qi.oninput=e=>{S.q=e.target.value;const p=qi.selectionStart;renderList();const n=document.getElementById("q");n.focus();n.setSelectionRange(p,p)};
+  document.getElementById("cat").onchange=e=>{S.cat=e.target.value;renderList()};
+  app.querySelectorAll("[data-st]").forEach(b=>b.onclick=()=>{S.st=b.dataset.st;renderList()});
+  app.querySelectorAll(".card").forEach(c=>c.onclick=()=>go("detail",c.dataset.id));
+}
+function cardHtml(b){
+  const a=b.actions||[];const d=a.filter(x=>x.done).length;
+  return `<button class="card" data-id="${esc(b.id)}">
+    <h3>${esc(b.title)}</h3>${stars(b.rating)}
+    <div class="meta">${b.example?'<span class="example">範例</span>':""}${b.author?esc(b.author):""}${b.category?`<span class="tag">${esc(b.category)}</span>`:""}<span class="status ${b.status==="done"?"done":"reading"}">${statusLbl[b.status]||"閱讀中"}</span>${a.length?`<span class="prog">行動 ${d}/${a.length}</span>`:""}</div>
+    ${b.takeaways?`<p class="gist">${esc(b.takeaways)}</p>`:""}
+  </button>`;
+}
+
+function renderDetail(){
+  const b=book(S.id);if(!b)return go("list");
+  const quotes=(b.quotes||[]).filter(Boolean),acts=b.actions||[];
+  app.innerHTML=`<button class="back" id="back">← 回書架</button>
+   <div class="d-head">${b.example?'<span class="example">範例，可刪除</span>':""}<h2>${esc(b.title)}</h2>
+     <div class="meta">${b.author?`<span>${esc(b.author)}</span>`:""}${b.category?`<span class="tag">${esc(b.category)}</span>`:""}<span class="status ${b.status==="done"?"done":"reading"}">${statusLbl[b.status]||"閱讀中"}</span>${stars(b.rating)}${b.finishDate?`<span>讀完 ${esc(b.finishDate)}</span>`:b.startDate?`<span>開始 ${esc(b.startDate)}</span>`:""}</div></div>
+   ${b.why?`<section class="block"><h4>為什麼讀這本書</h4><p>${esc(b.why)}</p></section>`:""}
+   ${b.takeaways?`<section class="block"><h4>心得與收穫</h4><p>${esc(b.takeaways)}</p></section>`:""}
+   ${quotes.length?`<section class="block"><h4>金句摘錄</h4>${quotes.map(q=>`<blockquote>${esc(q)}</blockquote>`).join("")}</section>`:""}
+   ${acts.length?`<section class="block"><h4>我要怎麼變得更好</h4>${acts.map(a=>actHtml(b,a,false)).join("")}</section>`:""}
+   <div class="row-btns"><button class="btn primary" id="edit">編輯</button><button class="btn danger" id="del">刪除</button></div>
+   <div class="err" id="err">${esc(S.err)}</div>`;
+  document.getElementById("back").onclick=()=>go("list");
+  document.getElementById("edit").onclick=()=>go("edit",b.id);
+  const del=document.getElementById("del");
+  del.onclick=async()=>{
+    if(!del.classList.contains("armed")){del.classList.add("armed");del.textContent="再按一次確認刪除";setTimeout(()=>{del.classList.remove("armed");del.textContent="刪除"},4000);return}
+    del.disabled=true;del.textContent="刪除中…";
+    try{await API.remove(b.id);S.books=S.books.filter(x=>x.id!==b.id);cacheSave();go("list")}catch(e){S.err="刪除失敗："+e.message;renderDetail()}
+  };
+  bindActs();
+}
+function actHtml(b,a,showSrc){
+  const k=b.id+"_"+a.id;
+  return `<div class="act ${a.done?"done":""}"><input type="checkbox" id="a_${esc(k)}" data-b="${esc(b.id)}" data-a="${esc(a.id)}" ${a.done?"checked":""}><label for="a_${esc(k)}">${esc(a.text)}${showSrc?`<span class="src">《${esc(b.title)}》${a.done&&a.doneAt?"・"+new Date(a.doneAt).toLocaleDateString("zh-TW")+" 做到":""}</span>`:""}</label></div>`;
+}
+function bindActs(){
+  app.querySelectorAll(".act input").forEach(cb=>cb.onchange=async()=>{
+    const b=book(cb.dataset.b);if(!b)return;
+    const actions=(b.actions||[]).map(a=>a.id===cb.dataset.a?{...a,done:cb.checked,doneAt:cb.checked?Date.now():null}:a);
+    const prev=b.actions,nb={...b,actions,updatedAt:Date.now()};
+    replaceBook(nb);cb.closest(".act").classList.toggle("done",cb.checked);setSync("同步中…");
+    try{await API.save(nb);cacheSave();setSync()}catch(e){replaceBook({...b,actions:prev});cb.checked=!cb.checked;cb.closest(".act").classList.toggle("done",cb.checked);setSync("同步失敗");alertErr("更新失敗："+e.message+"，請再試一次。")}
+  });
+}
+function alertErr(m){const e=document.getElementById("err");if(e)e.textContent=m}
+
+function renderActions(){
+  const rows=S.books.flatMap(b=>(b.actions||[]).map(a=>({b,a})));
+  const todo=rows.filter(r=>!r.a.done),done=rows.filter(r=>r.a.done).sort((x,y)=>(y.a.doneAt||0)-(x.a.doneAt||0));
+  app.innerHTML=(rows.length?`
+    <div class="group-h">還在練習（${todo.length}）</div><section class="block" style="margin-top:0">${todo.length?todo.map(r=>actHtml(r.b,r.a,true)).join(""):'<p style="color:var(--ink-2)">全部做到了，很棒。</p>'}</section>
+    ${done.length?`<div class="group-h">已經做到（${done.length}）</div><section class="block" style="margin-top:0">${done.map(r=>actHtml(r.b,r.a,true)).join("")}</section>`:""}
+    <div class="err" id="err"></div>`
+    :`<div class="empty"><h3>還沒有行動項目</h3>記錄一本書時，在「我要怎麼變得更好」寫下具體可做的事，就會集中出現在這裡讓你勾選。</div>`);
+  bindActs();
+}
+
+function renderEdit(){
+  const b=S.id?book(S.id):null;
+  const d=b||{title:"",author:"",category:"",rating:0,status:"reading",startDate:new Date().toISOString().slice(0,10),finishDate:"",why:"",takeaways:"",quotes:[""],actions:[]};
+  let rating=d.rating||0;
+  const quotes=(d.quotes&&d.quotes.length?d.quotes:[""]).slice();
+  const actions=(d.actions&&d.actions.length?d.actions:[{id:uid(),text:"",done:false}]).map(a=>({...a}));
+  app.innerHTML=`<button class="back" id="back">← ${b?"取消編輯":"回書架"}</button>
+   <h2 style="font-family:var(--display);margin:4px 0 0">${b?"編輯紀錄":"記錄一本書"}</h2>
+   <form id="f" novalidate>
+     <div class="field"><label class="lb" for="f_title">書名 *</label><input type="text" id="f_title" value="${esc(d.title)}" required></div>
+     <div class="grid2">
+       <div class="field"><label class="lb" for="f_author">作者</label><input type="text" id="f_author" value="${esc(d.author)}"></div>
+       <div class="field"><label class="lb" for="f_cat">主題分類</label><select id="f_cat"><option value="">選擇主題</option>${CATS.map(c=>`<option ${d.category===c?"selected":""}>${c}</option>`).join("")}</select></div>
+       <div class="field"><label class="lb" for="f_status">狀態</label><select id="f_status">${Object.entries(statusLbl).map(([k,v])=>`<option value="${k}" ${d.status===k?"selected":""}>${v}</option>`).join("")}</select></div>
+       <div class="field"><span class="lb">評分</span><div class="rate" id="rate">${[1,2,3,4,5].map(n=>`<button type="button" data-n="${n}" aria-label="${n} 顆星">★</button>`).join("")}</div></div>
+       <div class="field"><label class="lb" for="f_start">開始日期</label><input type="date" id="f_start" value="${esc(d.startDate)}"></div>
+       <div class="field"><label class="lb" for="f_finish">讀完日期</label><input type="date" id="f_finish" value="${esc(d.finishDate)}"></div>
+     </div>
+     <div class="field"><label class="lb" for="f_why">為什麼讀這本書 <span class="hint">當時遇到什麼狀況、想解決什麼問題？</span></label><textarea id="f_why">${esc(d.why)}</textarea></div>
+     <div class="field"><label class="lb" for="f_take">心得與收穫 <span class="hint">最大的觀念轉變是什麼？</span></label><textarea id="f_take" style="min-height:140px">${esc(d.takeaways)}</textarea></div>
+     <div class="field"><span class="lb">金句摘錄</span><div class="multi" id="quotes"></div><button type="button" class="add" id="addQ">＋ 再加一句</button></div>
+     <div class="field"><span class="lb">我要怎麼變得更好 <span class="hint">寫成具體做得到的事，例如「開會先聽完再回應」</span></span><div class="multi" id="acts"></div><button type="button" class="add" id="addA">＋ 再加一項行動</button></div>
+     <div class="err" id="err"></div>
+     <div class="row-btns"><button class="btn primary" type="submit" id="save">儲存</button><button class="btn" type="button" id="cancel">取消</button></div>
+   </form>`;
+  const paintRate=()=>document.querySelectorAll("#rate button").forEach(x=>x.classList.toggle("on",+x.dataset.n<=rating));
+  document.querySelectorAll("#rate button").forEach(x=>x.onclick=()=>{rating=rating===+x.dataset.n?0:+x.dataset.n;paintRate()});paintRate();
+  const qBox=document.getElementById("quotes"),aBox=document.getElementById("acts");
+  const paintQ=()=>{qBox.innerHTML=quotes.map((q,i)=>`<div class="item"><textarea id="q_${i}" data-i="${i}" aria-label="金句 ${i+1}">${esc(q)}</textarea><button type="button" class="x" data-i="${i}" aria-label="移除">×</button></div>`).join("");
+    qBox.querySelectorAll("textarea").forEach(t=>t.oninput=()=>quotes[t.dataset.i]=t.value);
+    qBox.querySelectorAll(".x").forEach(x=>x.onclick=()=>{quotes.splice(+x.dataset.i,1);paintQ()})};
+  const paintA=()=>{aBox.innerHTML=actions.map((a,i)=>`<div class="item"><input type="text" id="ac_${i}" data-i="${i}" value="${esc(a.text)}" aria-label="行動 ${i+1}"><button type="button" class="x" data-i="${i}" aria-label="移除">×</button></div>`).join("");
+    aBox.querySelectorAll("input").forEach(t=>t.oninput=()=>actions[t.dataset.i].text=t.value);
+    aBox.querySelectorAll(".x").forEach(x=>x.onclick=()=>{actions.splice(+x.dataset.i,1);paintA()})};
+  paintQ();paintA();
+  document.getElementById("addQ").onclick=()=>{quotes.push("");paintQ();qBox.lastElementChild.querySelector("textarea").focus()};
+  document.getElementById("addA").onclick=()=>{actions.push({id:uid(),text:"",done:false});paintA();aBox.lastElementChild.querySelector("input").focus()};
+  const leave=()=>b?go("detail",b.id):go("list");
+  document.getElementById("back").onclick=leave;document.getElementById("cancel").onclick=leave;
+  document.getElementById("f").onsubmit=async e=>{
+    e.preventDefault();
+    const v=id=>document.getElementById(id).value.trim();
+    const title=v("f_title");if(!title){alertErr("請先填寫書名。");document.getElementById("f_title").focus();return}
+    const data={title,author:v("f_author"),category:v("f_cat"),status:v("f_status"),rating,startDate:v("f_start"),finishDate:v("f_finish"),
+      why:v("f_why"),takeaways:v("f_take"),quotes:quotes.map(s=>s.trim()).filter(Boolean),
+      actions:actions.filter(a=>a.text.trim()).map(a=>({id:a.id,text:a.text.trim(),done:!!a.done,doneAt:a.doneAt||null})),
+      createdAt:b?.createdAt||Date.now(),updatedAt:Date.now()};
+    if(data.status==="done"&&!data.finishDate)data.finishDate=new Date().toISOString().slice(0,10);
+    const btn=document.getElementById("save");btn.disabled=true;btn.textContent="儲存中…";
+    try{
+      const id=b?.id||newId();
+      await API.save({id,...data});
+      replaceBook({id,...data});cacheSave();setSync();
+      go("detail",id);
+    }catch(err){btn.disabled=false;btn.textContent="儲存";alertErr("儲存失敗："+err.message+"，請檢查網路後再試一次。")}
+  };
+}
+
+/* ---------- Google Sheets 連線（Apps Script Web App） ---------- */
+const LS={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+const API={
+  url:LS.get("rj_url")||"",token:LS.get("rj_token")||"",
+  ready(){return !!(this.url&&this.token)},
+  async get(params,url=this.url,token=this.token){
+    const q=new URLSearchParams({...params,token});
+    const r=await fetch(url+(url.includes("?")?"&":"?")+q,{redirect:"follow"});
+    return this.parse(r);
+  },
+  async post(body){
+    const r=await fetch(this.url,{method:"POST",redirect:"follow",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({...body,token:this.token})});
+    return this.parse(r);
+  },
+  async parse(r){
+    let j;try{j=await r.json()}catch(e){throw new Error("回應格式不對，請確認網址是 Apps Script「網頁應用程式」的 /exec 網址")}
+    if(!j.ok)throw new Error(j.error||"未知錯誤");return j;
+  },
+  async list(){return (await this.get({action:"list"})).books},
+  save(book){return this.post({action:"save",book})},
+  remove(id){return this.post({action:"delete",id})}
+};
+const newId=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+function replaceBook(nb){S.books=S.books.filter(x=>x.id!==nb.id).concat([nb])}
+function cacheSave(){LS.set("rj_cache",JSON.stringify(S.books))}
+function setSync(t){const el=document.getElementById("sync");if(!el)return;
+  if(t){el.textContent=t;return}
+  const d=new Date();el.textContent="已同步 "+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");}
+async function refresh(){
+  if(!API.ready())return;
+  setSync("同步中…");
+  try{S.books=await API.list();S.loaded=true;cacheSave();setSync();if(S.view!=="edit"&&S.tab!=="settings")render()}
+  catch(e){setSync(S.loaded?"離線中，顯示上次的資料":"連線失敗");
+    if(!S.loaded){app.innerHTML=`<div class="notice">讀不到 Google Sheets 的資料：${esc(e.message)}<br>請檢查網路，或到右上角 ⚙ 確認設定。</div><div class="row-btns"><button class="btn primary" id="retry">重試</button></div>`;document.getElementById("retry").onclick=refresh}}
+}
+function renderSettings(){
+  const first=!API.ready();
+  app.innerHTML=`<h2 style="font-family:var(--display);margin:20px 0 4px">${first?"第一次使用：連接你的 Google Sheets":"設定"}</h2>
+   <p class="muted">讀書紀錄存在你自己的 Google Sheets。把 Apps Script 部署後拿到的「網頁應用程式網址」和「通行碼」貼在下面，每台裝置只要設定一次。</p>
+   <form id="sf" novalidate>
+     <div class="field"><label class="lb" for="s_url">網頁應用程式網址 <span class="hint">以 /exec 結尾</span></label><input type="text" id="s_url" inputmode="url" autocomplete="off" placeholder="https://script.google.com/macros/s/…/exec" value="${esc(API.url)}"></div>
+     <div class="field"><label class="lb" for="s_tok">通行碼 <span class="hint">執行 setup 後在記錄裡看到的那串</span></label><input type="text" id="s_tok" autocomplete="off" value="${esc(API.token)}"></div>
+     <div class="err" id="err"></div>
+     <div class="row-btns"><button class="btn primary" type="submit" id="s_save">測試並儲存</button>${first?"":'<button class="btn" type="button" id="s_reload">重新同步資料</button>'}</div>
+   </form>
+   ${first?"":`<section class="block"><h4>目前狀態</h4><p>共 ${S.books.length} 本書的紀錄。在 Google Sheets 的「Books」工作表也看得到同樣的資料，可以當作備份。</p></section>`}`;
+  document.getElementById("sf").onsubmit=async e=>{
+    e.preventDefault();
+    const url=document.getElementById("s_url").value.trim(),tok=document.getElementById("s_tok").value.trim();
+    if(!/^https:\/\/script\.google(usercontent)?\.com\//.test(url)){alertErr("網址看起來不對，應該是 https://script.google.com/macros/s/…/exec");return}
+    if(!tok){alertErr("請填寫通行碼。");return}
+    const btn=document.getElementById("s_save");btn.disabled=true;btn.textContent="連線測試中…";
+    try{
+      const j=await API.get({action:"list"},url,tok);
+      API.url=url;API.token=tok;LS.set("rj_url",url);LS.set("rj_token",tok);
+      S.books=j.books;S.loaded=true;cacheSave();setSync();
+      S.tab="dash";go("list");
+    }catch(err){btn.disabled=false;btn.textContent="測試並儲存";alertErr("連線失敗："+err.message)}
+  };
+  const rl=document.getElementById("s_reload");if(rl)rl.onclick=async()=>{await refresh();S.tab="dash";go("list")};
+}
+(function init(){
+  try{const c=JSON.parse(LS.get("rj_cache")||"null");if(Array.isArray(c)&&API.ready()){S.books=c;S.loaded=true}}catch(e){}
+  render();refresh();
+  document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&S.view!=="edit")refresh()});
+  if("serviceWorker" in navigator&&location.protocol==="https:")navigator.serviceWorker.register("sw.js").catch(()=>{});
+})();
+</script>
+</body>
+</html>
